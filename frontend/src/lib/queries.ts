@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { SEED_LISTINGS } from './seed-data';
-import type { Listing, ListingFilters, Lead } from './types';
+import type { Listing, ListingFilters, Lead, MarketInsights } from './types';
 
 const PAGE_SIZE = 20;
 
@@ -239,6 +239,75 @@ export async function getStateCount(): Promise<number> {
 
   const unique = new Set((data ?? []).map((d) => d.state));
   return unique.size;
+}
+
+const SERVICE_KEYS: { key: string; label: string }[] = [
+  { key: 'svc_full_groom', label: 'Full Groom' },
+  { key: 'svc_bath_only', label: 'Bath Only' },
+  { key: 'svc_nail_trim', label: 'Nail Trim' },
+  { key: 'svc_deshedding', label: 'Deshedding' },
+  { key: 'svc_teeth_brushing', label: 'Teeth Brushing' },
+  { key: 'svc_ear_cleaning', label: 'Ear Cleaning' },
+  { key: 'svc_flea_treatment', label: 'Flea Treatment' },
+  { key: 'svc_puppy_groom', label: 'Puppy Groom' },
+  { key: 'svc_senior_groom', label: 'Senior Groom' },
+  { key: 'svc_dematting', label: 'Dematting' },
+  { key: 'svc_breed_cuts', label: 'Breed Cuts' },
+];
+
+function computeInsights(listings: Listing[], areaLabel: string): MarketInsights {
+  const total = listings.length;
+
+  const services = SERVICE_KEYS.map(({ key, label }) => {
+    const count = listings.filter(
+      (l) => (l as unknown as Record<string, unknown>)[key] === true
+    ).length;
+    return { key, label, count, total, pct: total > 0 ? Math.round((count / total) * 100) : 0 };
+  });
+
+  const catCount = listings.filter((l) => l.accepts_cats).length;
+  const fearFreeCount = listings.filter((l) => l.fear_free_certified).length;
+
+  const ratings = listings.map((l) => l.rating).filter((r): r is number => r != null);
+  const avgRating = ratings.length > 0
+    ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+    : 0;
+
+  const gaps = services.filter((s) => s.count === 0).map((s) => s.label);
+  const weakSpots = services
+    .filter((s) => s.count > 0 && s.pct < 25)
+    .map((s) => s.label);
+
+  return { areaLabel, totalInArea: total, services, catCount, fearFreeCount, avgRating, gaps, weakSpots };
+}
+
+export async function getMarketInsights(
+  state?: string,
+  city?: string
+): Promise<MarketInsights> {
+  const areaLabel = city && state
+    ? `${city}, ${state}`
+    : state ?? 'All States';
+
+  if (IS_MOCK) {
+    let subset = [...SEED_LISTINGS];
+    if (state) subset = subset.filter((l) => l.state === state);
+    if (city) subset = subset.filter((l) => l.city.toLowerCase() === city.toLowerCase());
+    return computeInsights(subset, areaLabel);
+  }
+
+  // Supabase path: fetch all listings for the area (no pagination)
+  let query = supabase.from('listings').select('*');
+  if (state) query = query.eq('state', state);
+  if (city) query = query.ilike('city', city);
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('Error fetching market insights:', error);
+    return computeInsights([], areaLabel);
+  }
+
+  return computeInsights((data as Listing[]) ?? [], areaLabel);
 }
 
 export async function submitLead(lead: Lead): Promise<boolean> {

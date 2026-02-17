@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import SearchBar from '@/components/SearchBar';
 import FilterSidebar from '@/components/FilterSidebar';
 import ListingCard from '@/components/ListingCard';
-import { getListings, getStates } from '@/lib/queries';
-import type { Listing, ListingFilters } from '@/lib/types';
+import MarketInsightsPanel from '@/components/MarketInsights';
+import { getListings, getStates, getMarketInsights } from '@/lib/queries';
+import type { Listing, ListingFilters, MarketInsights } from '@/lib/types';
 
 const PAGE_SIZE = 20;
 
@@ -32,6 +33,7 @@ export default function BrowsePageClient() {
   const [count, setCount] = useState(0);
   const [states, setStates] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [insights, setInsights] = useState<MarketInsights | null>(null);
 
   // Fetch states for the filter sidebar
   useEffect(() => {
@@ -47,6 +49,11 @@ export default function BrowsePageClient() {
       setLoading(false);
     });
   }, [filters]);
+
+  // Fetch market insights when geographic filters change
+  useEffect(() => {
+    getMarketInsights(filters.state, filters.city).then(setInsights);
+  }, [filters.state, filters.city]);
 
   const updateURL = useCallback(
     (newFilters: ListingFilters) => {
@@ -105,6 +112,9 @@ export default function BrowsePageClient() {
 
         {/* Listings grid */}
         <div className="flex-1">
+          {/* Market insights panel */}
+          {insights && <MarketInsightsPanel insights={insights} />}
+
           <div className="mb-4">
             <p className="text-sm text-gray-600">
               {count > 0 ? (

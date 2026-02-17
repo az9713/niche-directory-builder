@@ -53,12 +53,16 @@ immediately — no Supabase account, no database setup, no environment variables
 
 Mock mode provides:
 
-- **6 realistic seed listings** across 3 states (TX, CA, FL) with varied
-  services, ratings, prices, and features
+- **100 programmatically generated seed listings** across 40 cities in 22
+  states, with varied services, ratings, prices, and features
 - **In-memory filtering** that mirrors the real Supabase queries (state, city,
   search, services, rating, pagination)
+- **Market Insights panel** that computes service coverage stats and identifies
+  gaps for any selected state or city
 - **Lead form submission** that logs to the browser console instead of writing
   to a database
+- **Deliberate service deserts** in 6 states (GA, WA, CO, IN, OH, MN) for
+  demonstrating arbitrage/market gap analysis
 
 Auto-detection is automatic: if `NEXT_PUBLIC_SUPABASE_URL` is empty or contains
 `"placeholder"`, mock mode activates. No code changes or flags needed.
@@ -81,8 +85,8 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. You should see the directory homepage with 6
-listings and 3 states.
+Open `http://localhost:3000`. You should see the directory homepage with 100
+listings across 22 states.
 
 ---
 
@@ -95,29 +99,43 @@ lead-generation components as the production workflow. Here is what to verify:
 
 Visit `http://localhost:3000`.
 
-- Stats should show 6 listings across 3 states
+- Stats should show 100 listings across 22 states
 - Navigation links to the browse page work
 
 ### 4b. Browse Page — Filtering
 
 Visit `http://localhost:3000/groomers`.
 
-- **State dropdown**: Select "TX" — should show 2 listings (Houston, Austin).
-  Select "FL" — should show 2 (Miami, Tampa).
-- **City search**: Type "houston" in the city field — should narrow to 1 listing.
+- **State dropdown**: Select "TX" — should show ~15 listings across 5 cities.
+  Select "FL" — should show ~12 across 4 cities.
+- **City search**: Type "houston" in the city field — should narrow to ~3
+  listings.
 - **Service checkboxes**: Toggle services like "Flea Treatment" — listings
   without that service disappear.
-- **Accepts Cats**: Toggle on — listings that are dogs-only disappear
-  (Austin Paws on Wheels and Miami Grooming Express are dogs-only).
-- **Fear Free Certified**: Toggle on — only 2 listings remain (Houston and
-  Los Angeles).
-- **Minimum Rating**: Set to 4.7 — filters out lower-rated groomers.
+- **Accepts Cats**: Toggle on — listings that are dogs-only disappear.
+- **Fear Free Certified**: Toggle on — only ~25 listings remain.
+- **Minimum Rating**: Set to 4.5 — filters out lower-rated groomers.
+- **Pagination**: With 100 listings, you should see 5 pages. Click through
+  them to verify pagination works.
 - **Combined filters**: Stack multiple filters to verify they work together.
 - **URL sync**: Check that the browser URL updates with query parameters as you
   filter (e.g., `/groomers?state=TX&city=houston`). Pasting that URL back
   should restore the same filters.
 
-### 4c. Detail Page
+### 4c. Market Insights Panel
+
+On the browse page (`/groomers`):
+
+- A collapsible **Market Insights** bar should appear above the listing grid
+- Click it to expand and see service coverage stats for all 100 groomers
+- Select **State = GA** — the panel should show 2 groomers with red gap alerts
+  (no cats, no flea treatment, no teeth brushing, no fear-free)
+- Select **State = IN** — the panel should show the worst market: low ratings,
+  multiple gaps, no online booking
+- See [ARBITRAGE_DEMO_GUIDE.md](ARBITRAGE_DEMO_GUIDE.md) for 8 detailed demo
+  scenarios with step-by-step instructions
+
+### 4d. Detail Page
 
 Click any listing card, or visit a URL directly like:
 
@@ -130,7 +148,7 @@ http://localhost:3000/groomer/pawfect-mobile-grooming-houston
 
 ![Detail page with lead form](pawfect_mobile_grooming.jpg)
 
-### 4d. Lead Form Submission
+### 4e. Lead Form Submission
 
 This is the core monetization component. On any detail page:
 
@@ -146,21 +164,21 @@ without a database.
 
 ![Quote requested success state](after_quote_requested.gif)
 
-### 4e. Build Verification
+### 4f. Build Verification
 
 ```bash
 npm run build
 ```
 
-This should succeed and generate static pages for all 6 seed listings. The
+This should succeed and generate static pages for all 100 seed listings. The
 output will show routes like:
 
 ```
 ● /groomer/[slug]
-  ├ /groomer/pawfect-mobile-grooming-houston
-  ├ /groomer/austin-paws-on-wheels
-  ├ /groomer/sunny-paws-mobile-spa-los-angeles
-  └ [+3 more paths]
+  ├ /groomer/fluffy-on-wheels-houston
+  ├ /groomer/cozy-grooming-co-austin
+  ├ /groomer/royal-mobile-salon-dallas
+  └ [+97 more paths]
 ```
 
 ---
@@ -169,10 +187,12 @@ output will show routes like:
 
 | Mock Behavior | Production Behavior |
 |--------------|-------------------|
-| 6 seed listings in memory | Thousands of listings in Supabase |
+| 100 seed listings in memory | Thousands of listings in Supabase |
 | In-memory array filtering | Supabase SQL queries with indexes |
+| In-memory market insights computation | Supabase aggregate queries |
 | `console.log` on lead submit | `INSERT INTO leads` via Supabase API |
 | Static pages from seed slugs | Static pages from real slugs via `generateStaticParams` |
+| Deliberate service deserts in 6 states | Real gaps emerge naturally from market data |
 | Instant responses | Network latency to Supabase |
 
 The UI components, page structure, filter logic, URL parameter syncing, form
@@ -215,17 +235,19 @@ normal.
 
 | File | Role |
 |------|------|
-| `frontend/src/lib/seed-data.ts` | 6 seed `Listing` objects |
-| `frontend/src/lib/queries.ts` | All data access — mock branch + real Supabase branch |
+| `frontend/src/lib/seed-data.ts` | Generates 100 seed `Listing` objects with deterministic pseudo-random data |
+| `frontend/src/lib/queries.ts` | All data access — mock branch + real Supabase branch, including `getMarketInsights()` |
+| `frontend/src/lib/types.ts` | TypeScript interfaces including `MarketInsights` and `ServiceStat` |
 | `frontend/src/lib/supabase.ts` | Supabase client (still uses placeholder fallback for builds) |
+| `frontend/src/components/MarketInsights.tsx` | Collapsible insights panel with gap alerts and service coverage bars |
 
-### Seed Listings Summary
+### Seed Data Summary
 
-| # | Name | City | State | Rating | Cats | Fear Free |
-|---|------|------|-------|--------|------|-----------|
-| 1 | Pawfect Mobile Grooming | Houston | TX | 4.9 | Yes | Yes |
-| 2 | Austin Paws on Wheels | Austin | TX | 4.7 | No | No |
-| 3 | Sunny Paws Mobile Spa | Los Angeles | CA | 4.8 | Yes | Yes |
-| 4 | San Diego Mobile Pet Care | San Diego | CA | 4.5 | Yes | No |
-| 5 | Miami Grooming Express | Miami | FL | 4.6 | No | No |
-| 6 | Tampa Bay Mobile Groomers | Tampa | FL | 4.3 | Yes | No |
+100 listings across 22 states (40 cities). The generator uses:
+- Deterministic seeded random (same output every build)
+- Regional price tiers (high/mid/low cost cities)
+- Varied service probabilities (92% offer Full Groom, only 45% offer Flea Treatment)
+- Deliberate service deserts in GA, WA, CO, IN, OH, MN for arbitrage demos
+
+For the full breakdown of states, cities, and service deserts, see
+[ARBITRAGE_DEMO_GUIDE.md](ARBITRAGE_DEMO_GUIDE.md#14-reference-seed-data-overview).

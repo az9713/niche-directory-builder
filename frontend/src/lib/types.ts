@@ -78,3 +78,22 @@ export interface ListingFilters {
   min_rating?: number;
   page?: number;
 }
+
+export interface ServiceStat {
+  key: string;
+  label: string;
+  count: number;
+  total: number;
+  pct: number;
+}
+
+export interface MarketInsights {
+  areaLabel: string;
+  totalInArea: number;
+  services: ServiceStat[];
+  catCount: number;
+  fearFreeCount: number;
+  avgRating: number;
+  gaps: string[];       // service labels with 0 providers
+  weakSpots: string[];  // service labels with <25% coverage
+}
