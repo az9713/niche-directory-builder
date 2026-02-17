@@ -101,12 +101,54 @@ cp .env.local.example .env.local
 ```
 Edit `frontend/.env.local` — add your Supabase URL and anon key.
 
-### Phase 3: Set Up Database (5 minutes)
+### Phase 3: Set Up Database (10 minutes)
 
-1. In Supabase, go to SQL Editor
-2. Open `supabase_schema.sql` from this repo
-3. Copy/paste the entire file and click Run
-4. Done — your tables, indexes, and security policies are created
+> Supabase is a hosted database — you don't install anything. It runs in the cloud.
+> If you've never used Supabase before, see the [Developer Guide](DEVELOPER_GUIDE.md#5-setting-up-supabase)
+> for a detailed click-by-click walkthrough with screenshots descriptions.
+
+**Create your database:**
+
+1. Go to https://supabase.com and click **"Start your project"**
+2. Sign up with GitHub or email
+3. Click **"New Project"** (you may need to create an Organization first — pick "Free" plan)
+4. Fill in the form:
+   - **Name:** anything (e.g., `pet-grooming-directory`)
+   - **Database password:** click "Generate a password" and **save it**
+   - **Region:** pick one close to you
+5. Click **"Create new project"** and wait ~2 minutes
+
+**Run the schema:**
+
+6. In the left sidebar, click **"SQL Editor"** (terminal-looking icon)
+7. Click **"New query"**
+8. Open `supabase_schema.sql` from this repo in a text editor
+9. Select all (Ctrl+A), copy (Ctrl+C)
+10. Paste into the Supabase SQL Editor (Ctrl+V)
+11. Click the green **"Run"** button
+12. You should see "Success. No rows returned." — this is correct
+
+**Verify:** Click **"Table Editor"** in the left sidebar. You should see `listings`
+and `leads` tables.
+
+**Get your API keys:**
+
+13. Click the **gear icon** (bottom of left sidebar) → **"API"** in the submenu
+14. Copy these three values and save them:
+    - **Project URL** (e.g., `https://abc123.supabase.co`)
+    - **anon public key** (long string starting with `eyJ...`) — click "Reveal" first
+    - **service_role secret key** — click "Reveal" first
+15. Put them in your environment files:
+
+```bash
+# pipeline/.env
+SUPABASE_URL=https://abc123.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJ...your-service-role-key...
+
+# frontend/.env.local
+NEXT_PUBLIC_SUPABASE_URL=https://abc123.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...your-anon-key...
+```
 
 ### Phase 4: Scrape Data (5-10 minutes)
 

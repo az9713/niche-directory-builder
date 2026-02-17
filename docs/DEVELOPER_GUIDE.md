@@ -351,38 +351,153 @@ the CSV row count.
 
 ## 5. Setting Up Supabase
 
-### Step 5.1: Create a Supabase Project
+Supabase is a hosted PostgreSQL database with an auto-generated REST API. Think of it
+as "Firebase but with a real SQL database." You don't need to install anything — it runs
+in the cloud. The free tier is more than sufficient for this project.
 
-1. Go to supabase.com and sign up (free)
-2. Click "New Project"
-3. Choose a name (e.g., "pet-grooming-directory")
-4. Set a database password (save it somewhere safe)
-5. Choose a region close to your users
-6. Wait for the project to be created (~2 minutes)
+### Step 5.1: Create a Supabase Account
 
-### Step 5.2: Run the Schema SQL
+1. Open your browser and go to **https://supabase.com**
+2. Click the green **"Start your project"** button (top right)
+3. Sign up with GitHub, or use email/password
+4. Verify your email if prompted
 
-1. In your Supabase project, go to SQL Editor (left sidebar)
-2. Click "New Query"
-3. Open `supabase_schema.sql` from this repository
-4. Copy and paste the ENTIRE file into the SQL Editor
-5. Click "Run"
+You'll land on the Supabase **Dashboard** — a page showing "Your Projects" (empty for now).
 
-**What this creates:**
-- `listings` table with 40+ columns
-- `leads` table for contact form submissions
-- Full-text search column (`fts`) with GIN index
-- 7 database indexes for fast queries
-- Row Level Security (RLS) policies
-- Auto-updating `updated_at` trigger
+### Step 5.2: Create a New Project
 
-### Step 5.3: Get Your API Keys
+1. On the Dashboard, click the green **"New Project"** button
+2. If you're on a free plan, you'll need to create an **Organization** first:
+   - Enter any name (e.g., "Personal" or "My Projects")
+   - Select the **Free** plan
+   - Click **"Create organization"**
+3. Now fill out the **New Project** form:
+   - **Project name:** Enter anything (e.g., `pet-grooming-directory`)
+   - **Database password:** Click **"Generate a password"** or type your own
+     - **IMPORTANT:** Save this password somewhere safe (you may need it later)
+   - **Region:** Pick the one closest to your users (e.g., "East US (N. Virginia)")
+   - **Pricing plan:** Free ($0/month)
+4. Click **"Create new project"**
+5. **Wait 1-2 minutes** — Supabase is provisioning your database. You'll see a loading
+   screen. When it's done, you'll land on the **Project Home** page.
 
-Go to Settings → API in your Supabase project:
+### Step 5.3: Run the Database Schema
 
-- **Project URL** → This is your `SUPABASE_URL`
-- **anon public key** → This is your `NEXT_PUBLIC_SUPABASE_ANON_KEY` (for frontend)
-- **service_role key** → This is your `SUPABASE_SERVICE_ROLE_KEY` (for pipeline)
+This step creates all the tables, indexes, and security policies your directory needs.
+
+1. In your Supabase project, look at the **left sidebar** (vertical icon menu)
+2. Click the **"SQL Editor"** icon (it looks like a terminal/command prompt icon,
+   or you'll see the text "SQL Editor" if the sidebar is expanded)
+3. You'll see the SQL Editor page. Click **"New query"** (top left, green button)
+4. You now have an empty text editor. This is where you'll paste the schema.
+5. On your computer, open the file **`supabase_schema.sql`** from this repository
+   in any text editor (VS Code, Notepad, TextEdit, etc.)
+6. **Select ALL** the text in `supabase_schema.sql` (Ctrl+A / Cmd+A)
+7. **Copy** it (Ctrl+C / Cmd+C)
+8. Go back to the Supabase SQL Editor in your browser
+9. **Click inside** the empty query editor
+10. **Paste** (Ctrl+V / Cmd+V) — you should see ~220 lines of SQL
+11. Click the green **"Run"** button (bottom right, or Ctrl+Enter)
+12. Wait a few seconds. You should see: **"Success. No rows returned."**
+    - This is correct! The SQL creates tables/indexes but doesn't return data.
+    - If you see a red error, read the message — it usually means a table already
+      exists (safe to ignore) or there's a typo.
+
+**To verify it worked:**
+
+1. In the left sidebar, click **"Table Editor"** (the grid/table icon)
+2. You should see two tables listed: **`listings`** and **`leads`**
+3. Click on **`listings`** — you'll see a spreadsheet-like view with all 40+ columns
+4. It will be empty (no rows yet) — that's expected. The pipeline will fill it later.
+
+**What was created:**
+- `listings` table — 40+ columns for business data
+- `leads` table — stores contact form submissions from website visitors
+- Full-text search — enables search by name, city, or state
+- 7 indexes — makes database queries fast
+- Row Level Security (RLS) — controls who can read/write what
+- Automatic timestamp — `updated_at` updates itself when a row changes
+
+### Step 5.4: Find Your API Keys
+
+You need three values from Supabase. Here's exactly where to find them:
+
+1. In the left sidebar, click the **gear icon** at the bottom — this opens **"Project Settings"**
+2. In the Settings page, click **"API"** in the left submenu (under "Configuration")
+3. You'll see a page with several sections. Find these three values:
+
+**Value 1: Project URL**
+- Look for the section labeled **"Project URL"**
+- It looks like: `https://abcdefghijkl.supabase.co`
+- This is your `SUPABASE_URL` (pipeline) and `NEXT_PUBLIC_SUPABASE_URL` (frontend)
+- Click the **copy icon** next to it to copy
+
+**Value 2: anon public key**
+- Look for the section labeled **"Project API keys"**
+- Find the key labeled **`anon`** **`public`**
+- It's a long string starting with `eyJhbGciOi...`
+- This is your `NEXT_PUBLIC_SUPABASE_ANON_KEY` (for the frontend)
+- Click **"Reveal"** if it's hidden, then click the **copy icon**
+- This key is SAFE to expose in browser code (RLS restricts what it can do)
+
+**Value 3: service_role secret key**
+- In the same "Project API keys" section, find the key labeled **`service_role`** **`secret`**
+- Click **"Reveal"** to show it, then click the **copy icon**
+- This is your `SUPABASE_SERVICE_ROLE_KEY` (for the pipeline ONLY)
+- **WARNING:** This key has FULL access to your database. Treat it like a password:
+  - NEVER put it in frontend code
+  - NEVER commit it to git
+  - ONLY use it in `pipeline/.env`
+
+### Step 5.5: Configure Your Environment Files
+
+Now put the three values into your environment files:
+
+**Pipeline (`pipeline/.env`):**
+```
+ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxx
+SUPABASE_URL=https://abcdefghijkl.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxx
+```
+
+**Frontend (`frontend/.env.local`):**
+```
+NEXT_PUBLIC_SUPABASE_URL=https://abcdefghijkl.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xxxxx
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
+
+Replace the placeholder values with the actual values you copied from Supabase.
+
+### Step 5.6: Verify the Connection
+
+**Test the pipeline connection:**
+```bash
+cd pipeline
+source .venv/bin/activate
+python -c "
+from dotenv import load_dotenv
+import os
+load_dotenv()
+from supabase import create_client
+client = create_client(os.getenv('SUPABASE_URL'), os.getenv('SUPABASE_SERVICE_ROLE_KEY'))
+result = client.table('listings').select('*', count='exact', head=True).execute()
+print(f'Connection OK. Listings count: {result.count}')
+"
+```
+
+If you see `Connection OK. Listings count: 0` — everything is working.
+
+**Test the frontend connection:**
+```bash
+cd frontend
+npm run dev
+```
+
+Open http://localhost:3000. If you see the homepage with "-- Verified Groomers" and
+"-- States Covered" (dashes instead of numbers), the connection is working — there's
+just no data yet. If you see an error in the browser console (F12 → Console), check
+your `.env.local` values.
 
 ---
 
