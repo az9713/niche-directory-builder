@@ -1,5 +1,13 @@
 # Niche Directory Builder
 
+<div align="center">
+
+![Find Mobile Pet Groomers — Mock Test Demo](docs/find_mobile_pet_groomers.jpg)
+
+*Screenshot from the mock/seed data test — no Supabase required. See the [Mock Testing Guide](docs/MOCK_TESTING_GUIDE.md).*
+
+</div>
+
 A complete system for building niche online directories that generate organic SEO traffic and monetize through lead generation. Includes a Python data pipeline (Outscraper + Crawl4AI + Claude API) and a Next.js frontend with Supabase.
 
 **Demo niche:** Mobile Pet Grooming (nationwide US directory)
