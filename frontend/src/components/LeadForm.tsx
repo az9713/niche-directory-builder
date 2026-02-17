@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { submitLead } from "@/lib/queries";
 
 interface LeadFormProps {
   listingId: number;
@@ -29,18 +29,18 @@ export default function LeadForm({ listingId, listingName }: LeadFormProps) {
 
     setSubmitting(true);
 
-    const { error: dbError } = await supabase.from("leads").insert({
+    const ok = await submitLead({
       listing_id: listingId,
       name: name.trim(),
       email: email.trim(),
-      phone: phone.trim() || null,
-      pet_type: petType || null,
-      message: message.trim() || null,
+      phone: phone.trim() || undefined,
+      pet_type: petType || undefined,
+      message: message.trim() || undefined,
     });
 
     setSubmitting(false);
 
-    if (dbError) {
+    if (!ok) {
       setError("Something went wrong. Please try again.");
       return;
     }

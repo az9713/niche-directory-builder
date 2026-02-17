@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import SearchBar from '@/components/SearchBar';
 import FilterSidebar from '@/components/FilterSidebar';
 import ListingCard from '@/components/ListingCard';
-import { supabase } from '@/lib/supabase';
+import { getListings, getStates } from '@/lib/queries';
 import type { Listing, ListingFilters } from '@/lib/types';
 
 const PAGE_SIZE = 20;
@@ -35,63 +35,15 @@ export default function BrowsePageClient() {
 
   // Fetch states for the filter sidebar
   useEffect(() => {
-    supabase
-      .from('listings')
-      .select('state')
-      .order('state')
-      .then(({ data }) => {
-        if (data) {
-          const unique = [...new Set(data.map((d) => d.state as string))];
-          setStates(unique);
-        }
-      });
+    getStates().then(setStates);
   }, []);
 
   // Fetch listings when filters change
   useEffect(() => {
     setLoading(true);
-    const page = filters.page ?? 1;
-
-    let query = supabase.from('listings').select('*', { count: 'exact' });
-
-    if (filters.search) {
-      query = query.textSearch('fts', filters.search, { type: 'websearch' });
-    }
-    if (filters.state) {
-      query = query.eq('state', filters.state);
-    }
-    if (filters.city) {
-      query = query.ilike('city', filters.city);
-    }
-    if (filters.accepts_cats) {
-      query = query.eq('accepts_cats', true);
-    }
-    if (filters.fear_free) {
-      query = query.eq('fear_free_certified', true);
-    }
-    if (filters.breed_size) {
-      query = query.contains('breed_sizes', [filters.breed_size]);
-    }
-    if (filters.min_rating) {
-      query = query.gte('rating', filters.min_rating);
-    }
-    if (filters.services && filters.services.length > 0) {
-      for (const svc of filters.services) {
-        query = query.eq(svc, true);
-      }
-    }
-
-    query = query
-      .order('rating', { ascending: false, nullsFirst: false })
-      .order('reviews_count', { ascending: false, nullsFirst: false });
-
-    const from = (page - 1) * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-    query = query.range(from, to);
-
-    query.then(({ data, count: totalCount }) => {
-      setListings((data as Listing[]) ?? []);
-      setCount(totalCount ?? 0);
+    getListings(filters).then(({ data, count: totalCount }) => {
+      setListings(data);
+      setCount(totalCount);
       setLoading(false);
     });
   }, [filters]);
