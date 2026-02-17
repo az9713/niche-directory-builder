@@ -12,6 +12,13 @@ A complete system for building niche online directories that generate organic SE
 
 **Demo niche:** Mobile Pet Grooming (nationwide US directory)
 
+> **Current status:** The frontend runs on **100 mock/seed listings** — no
+> Supabase or API keys required. The Crawl4AI data pipeline (steps 2-8) has
+> been coded but **has not been tested against live data** yet. To try the
+> frontend immediately, skip to [Quick Start (Mock Mode)](#quick-start-mock-mode).
+> See the [Arbitrage Demo Guide](docs/ARBITRAGE_DEMO_GUIDE.md) for a walkthrough
+> of the market gap analysis features.
+
 ## How It Works
 
 ```
@@ -48,7 +55,7 @@ Each pipeline step does **one enrichment type per pass** — this produces drama
 │   └── step8_finalize.py        # Validate + upload to Supabase
 ├── frontend/                    # Next.js 16 + TypeScript + Tailwind v4
 │   ├── src/app/                 # Pages (home, browse, detail, sitemap, robots)
-│   ├── src/components/          # 10 UI components
+│   ├── src/components/          # 11 UI components (incl. MarketInsights panel)
 │   └── src/lib/                 # Supabase client, queries, types
 ├── supabase_schema.sql          # Complete DB schema (tables, indexes, RLS, FTS)
 └── CLAUDE.md                    # AI assistant project guide
@@ -58,6 +65,8 @@ Each pipeline step does **one enrichment type per pass** — this produces drama
 
 | Document | Audience | Description |
 |----------|----------|-------------|
+| [Mock Testing Guide](docs/MOCK_TESTING_GUIDE.md) | Everyone | How to run and test with 100 seed listings (no database needed) |
+| [Arbitrage Demo Guide](docs/ARBITRAGE_DEMO_GUIDE.md) | Everyone | 8 step-by-step demos showing how to find underserved markets |
 | [User Guide](docs/USER_GUIDE.md) | Everyone | Quick start, 12 use cases, FAQ, cost breakdown |
 | [Developer Guide](docs/DEVELOPER_GUIDE.md) | Developers | Step-by-step setup, codebase walkthrough, troubleshooting |
 | [Architecture](docs/ARCHITECTURE.md) | Developers | 6-level architecture diagrams (ASCII), data flows, security model |
@@ -74,8 +83,34 @@ Each pipeline step does **one enrichment type per pass** — this produces drama
 | Frontend | [Next.js](https://nextjs.org) 16 + TypeScript + Tailwind CSS v4 |
 | Deployment | [Vercel](https://vercel.com) |
 
-## Getting Started
+## Quick Start (Mock Mode)
 
+The fastest way to see the directory in action — no accounts, no API keys, no
+database. Uses 100 built-in seed listings with realistic data across 22 US
+states.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:3000. You will see:
+- **Homepage** with stats (100 listings, 22 states)
+- **Browse page** (`/groomers`) with filters, pagination (5 pages), and a
+  collapsible **Market Insights** panel that highlights service gaps
+- **Detail pages** for each listing with a lead capture form
+
+For a guided demo of the market gap analysis features, see the
+[Arbitrage Demo Guide](docs/ARBITRAGE_DEMO_GUIDE.md). For details on how mock
+mode works, see the [Mock Testing Guide](docs/MOCK_TESTING_GUIDE.md).
+
+## Getting Started (Full Pipeline)
+
+> **Note:** The Crawl4AI pipeline (steps 2-8) has been coded following the
+> methodology below but has not yet been tested end-to-end with live Outscraper
+> data. The frontend and mock data mode are fully tested.
+>
 > For the full walkthrough, see the [User Guide](docs/USER_GUIDE.md) or [Developer Guide](docs/DEVELOPER_GUIDE.md).
 
 ### 1. Set up Supabase
