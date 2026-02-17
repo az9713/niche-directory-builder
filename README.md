@@ -8,14 +8,14 @@ A complete system for building niche online directories that generate organic SE
 
 ```
 Raw Scrape (Outscraper)
-    → Step 2: Clean junk data
-    → Step 3: Verify niche match (Crawl4AI + Claude)
-    → Step 4: Extract services
-    → Step 5: Scrape images (optional)
-    → Step 6: Extract features
-    → Step 7: Extract service areas
-    → Step 8: Finalize + upload to Supabase
-    → Next.js frontend (browse, filter, lead capture)
+    -> Step 2: Clean junk data
+    -> Step 3: Verify niche match (Crawl4AI + Claude)
+    -> Step 4: Extract services
+    -> Step 5: Scrape images (optional)
+    -> Step 6: Extract features
+    -> Step 7: Extract service areas
+    -> Step 8: Finalize + upload to Supabase
+    -> Next.js frontend (browse, filter, lead capture)
 ```
 
 Each pipeline step does **one enrichment type per pass** — this produces dramatically higher quality results than trying to extract everything at once.
@@ -23,7 +23,11 @@ Each pipeline step does **one enrichment type per pass** — this produces drama
 ## Project Structure
 
 ```
-├── docs/                        # Methodology documentation (6 files)
+├── docs/                        # Documentation
+│   ├── ARCHITECTURE.md          # System architecture with ASCII diagrams
+│   ├── DEVELOPER_GUIDE.md       # Step-by-step developer guide
+│   ├── USER_GUIDE.md            # Quick start + 12 use cases
+│   └── 01-06_*.md               # Methodology reference (6 files)
 ├── pipeline/                    # Python data pipeline
 │   ├── utils/                   # Shared helpers (crawler, LLM, CSV)
 │   ├── step1_outscraper/        # Outscraper config + raw CSV storage
@@ -38,8 +42,18 @@ Each pipeline step does **one enrichment type per pass** — this produces drama
 │   ├── src/app/                 # Pages (home, browse, detail, sitemap, robots)
 │   ├── src/components/          # 10 UI components
 │   └── src/lib/                 # Supabase client, queries, types
-└── supabase_schema.sql          # Complete DB schema (tables, indexes, RLS, FTS)
+├── supabase_schema.sql          # Complete DB schema (tables, indexes, RLS, FTS)
+└── CLAUDE.md                    # AI assistant project guide
 ```
+
+## Documentation
+
+| Document | Audience | Description |
+|----------|----------|-------------|
+| [User Guide](docs/USER_GUIDE.md) | Everyone | Quick start, 12 use cases, FAQ, cost breakdown |
+| [Developer Guide](docs/DEVELOPER_GUIDE.md) | Developers | Step-by-step setup, codebase walkthrough, troubleshooting |
+| [Architecture](docs/ARCHITECTURE.md) | Developers | 6-level architecture diagrams (ASCII), data flows, security model |
+| [CLAUDE.md](CLAUDE.md) | AI assistants | Project conventions and guidelines for AI-assisted development |
 
 ## Tech Stack
 
@@ -53,6 +67,8 @@ Each pipeline step does **one enrichment type per pass** — this produces drama
 | Deployment | [Vercel](https://vercel.com) |
 
 ## Getting Started
+
+> For the full walkthrough, see the [User Guide](docs/USER_GUIDE.md) or [Developer Guide](docs/DEVELOPER_GUIDE.md).
 
 ### 1. Set up Supabase
 
@@ -123,6 +139,8 @@ This system is designed to be reused for any service-based local niche. To adapt
 5. **Update the frontend** branding, filters, and labels
 
 Good niche candidates: mobile auto detailing, junk removal, ADA bathroom contractors, luxury restroom trailers, mobile notary services.
+
+See the [User Guide](docs/USER_GUIDE.md#use-cases) for detailed walkthroughs of 12 different use cases.
 
 ## Estimated Cost
 
