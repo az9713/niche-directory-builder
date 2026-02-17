@@ -126,7 +126,9 @@ http://localhost:3000/groomer/pawfect-mobile-grooming-houston
 ```
 
 - Listing details render (name, address, phone, services, features, rating)
-- The "Request a Quote" form is visible
+- The "Request a Quote" form is visible on the right
+
+![Detail page with lead form](pawfect_mobile_grooming.jpg)
 
 ### 4d. Lead Form Submission
 
@@ -141,6 +143,8 @@ This is the core monetization component. On any detail page:
 In production, this data writes to the `leads` table in Supabase. In mock mode,
 it logs to the browser console so you can verify the form works end-to-end
 without a database.
+
+![Quote requested success state](after_quote_requested.gif)
 
 ### 4e. Build Verification
 
